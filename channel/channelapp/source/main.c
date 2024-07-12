@@ -72,6 +72,8 @@ static bool gdb;
 static const char *text_delete;
 static const char *text_error_delete;
 
+extern int viewing;
+
 s32 __IOS_LoadStartupIOS(void) {
 #if 0
 	__ES_Init();
@@ -413,7 +415,7 @@ void main_real(void) {
 			v_last = v_current;
 		}
 
-		if (bd & PADS_HOME) {
+		if ((bd & PADS_HOME) && viewing) {
 			if (v_current == v_browser) {
 				m_main_update ();
 				v_current = v_m_main;
@@ -428,7 +430,7 @@ void main_real(void) {
 			}
 		}
 
-		if (v_current == v_m_main) {
+		if ((v_current == v_m_main) && viewing) {
 			if (bd & PADS_B) {
 				v_current = v_browser;
 
@@ -501,7 +503,7 @@ void main_real(void) {
 			if (loader_tcp_initializing () && (frame % 20 == 0))
 				widget_toggle_flag (&v_browser->widgets[3], WF_ENABLED);
 
-			if (bd & PADS_NET_INIT)
+			if (viewing && ((bd & PADS_NET_INIT) || ((bd & (WPAD_BUTTON_1<<16)) && !(bh & (WPAD_BUTTON_2<<16)))))
 				loader_tcp_init ();
 
 #ifdef ENABLE_UPDATES
@@ -527,65 +529,67 @@ void main_real(void) {
 				continue;
 			}
 #endif
-			if (bd & PADS_1) {
-				dialog_options_result options;
-				options = show_options_dialog(v_current);
+			if (viewing) {
+				if (bd & PADS_1) {
+					dialog_options_result options;
+					options = show_options_dialog(v_current);
 
-				if (options.confirmed) {
-					app_entry_set_sort(options.sort);
-					app_entry_set_device(options.device);
-					app_entry_set_prefered(options.device);
+					if (options.confirmed) {
+						app_entry_set_sort(options.sort);
+						app_entry_set_device(options.device);
+						app_entry_set_prefered(options.device);
+					}
+
+					continue;
 				}
 
-				continue;
-			}
+				if (bd & PADS_2) {
+					browser_switch_mode();
+					continue;
+				}
 
-			if (bd & PADS_2) {
-				browser_switch_mode();
-				continue;
-			}
+				if (bd & PADS_DPAD) {
+					browser_set_focus(bd);
+					continue;
+				}
 
-			if (bd & PADS_DPAD) {
-				browser_set_focus(bd);
-				continue;
-			}
+				if (bd & PADS_A) {
+					clicked = view_widget_at_ir (v_browser);
 
-			if (bd & PADS_A) {
-				clicked = view_widget_at_ir (v_browser);
+					if (clicked == 0) {
+						browser_gen_view(BA_PREV, NULL);
+						continue;
+					}
 
-				if (clicked == 0) {
+					if (clicked == 1) {
+						browser_gen_view(BA_NEXT, NULL);
+						continue;
+					}
+
+					if (clicked == 3) {
+						loader_tcp_init ();
+						continue;
+					}
+
+					app_sel = browser_sel();
+
+					if (!app_sel)
+						continue;
+
+					v_detail = dialog_app (app_sel, v_browser);
+					v_current = v_detail;
+
+					dialog_fade (v_current, true);
+
+					continue;
+				}
+
+				if ((bd | bh) & PADS_MINUS)
 					browser_gen_view(BA_PREV, NULL);
-					continue;
-				}
 
-				if (clicked == 1) {
+				if ((bd | bh) & PADS_PLUS)
 					browser_gen_view(BA_NEXT, NULL);
-					continue;
-				}
-
-				if (clicked == 3) {
-					loader_tcp_init ();
-					continue;
-				}
-
-				app_sel = browser_sel();
-
-				if (!app_sel)
-					continue;
-
-				v_detail = dialog_app (app_sel, v_browser);
-				v_current = v_detail;
-
-				dialog_fade (v_current, true);
-
-				continue;
 			}
-
-			if ((bd | bh) & PADS_MINUS)
-				browser_gen_view(BA_PREV, NULL);
-
-			if ((bd | bh) & PADS_PLUS)
-				browser_gen_view(BA_NEXT, NULL);
 
 			if (loader_handshaked ()) {
 				loader_load (&ld_res, v_browser, NULL);
@@ -631,7 +635,7 @@ void main_real(void) {
 			continue;
 		}
 
-		if (v_current == v_detail) {
+		if ((v_current == v_detail) && viewing) {
 			if (bd & PADS_LEFT)
 				view_set_focus_prev (v_current);
 
@@ -737,7 +741,7 @@ void main_real(void) {
 			continue;
 		}
 
-		if (v_current == v_about) {
+		if ((v_current == v_about) && viewing) {
 			if (bd & (PADS_A | PADS_B))
 				exit_about = true;
 

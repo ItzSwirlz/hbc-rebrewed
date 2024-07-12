@@ -4,6 +4,7 @@
 #include "../config.h"
 #include "gfx.h"
 #include "theme.h"
+#include "view.h"
 
 #include "bubbles.h"
 
@@ -32,6 +33,9 @@ static bubble bubbles[MAX_BUBBLE_COUNT];
 static bubble sub_bubbles[MAX_BUBBLE_COUNT][BUBBLE_POP_MAX];
 
 static int bubble_count = -1;
+
+extern int score;
+extern int viewing;
 
 static void bubble_rand(int i) {
 	int tex;
@@ -99,6 +103,11 @@ static void bubble_pop(int i) {
 	int j;
 	bubbles[i].popped = 1;
 	bubbles[i].popcnt = IRAND(BUBBLE_POP_MAX - BUBBLE_POP_MIN) + BUBBLE_POP_MIN;
+	if(!viewing) {
+		score += bubbles[i].speed * 50;
+		score += bubbles[i].xm * 30;
+		score += bubbles[i].py;
+	}
 	entries_bubbles[i].entity.color = 0x00000000;
 
 	for (j = 0; j < bubbles[i].popcnt; j++) {
@@ -178,6 +187,8 @@ void bubble_update(bool wm, s32 x, s32 y) {
 						BUBBLE_POP_RADIUS;
 
 				if (!sub_bubbles[i][j].popped && wm) {
+					if(!viewing)
+						score += 30;
 					float cx = coords->x + entries_bubbles[i].entity.entity->w/2;
 					float cy = coords->y - entries_bubbles[i].entity.entity->h/2;
 					if ((abs(x - cx) < radius) && (abs(y - cy) < radius)) {

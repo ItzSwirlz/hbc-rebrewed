@@ -39,6 +39,12 @@ static gfx_queue_entry cur[2];
 
 static s8 rumble_timeout = -RUMBLE_DELAY;
 
+int score = 0;
+static int fading = 0;
+
+int viewing = 1;
+static gfx_queue_entry *sce = NULL;
+
 bool view_bubbles = false;
 
 void view_init (void) {
@@ -175,54 +181,61 @@ void view_plot (view *v, u32 alpha, u32 *down, u32 *held, u32 *up) {
 	w = view_widget_at_xy (v, x - v->coords.x, y - v->coords.y);
 	ct = CUR_STD;
 
-	if (v->drag_btn) {
-		if (bu & v->drag_btn)
-			v->drag = false;
-
-		if ((w != -1) && (bd & v->drag_btn)) {
-			v->drag = true;
-
-			v->drag_widget = w;
-
-			v->drag_start_x = x;
-			v->drag_start_y = y;
-		}
-
-		if (v->drag && (bh & v->drag_btn)) {
-			v->drag_x = x - v->drag_start_x;
-			v->drag_y = y - v->drag_start_y;
-
-			ct = v->widgets[v->drag_widget].cur;
-		}
+	if ((bh & WPAD_BUTTON_2<<16) && (bd & WPAD_BUTTON_1<<16) && !fading) {
+		viewing = !viewing;
+		controls_set_ir_threshold(!viewing);
 	}
 
-	c = v->cursor;
+	if (viewing) {
+		if (v->drag_btn) {
+			if (bu & v->drag_btn)
+				v->drag = false;
 
-	if (v->cursor != -1) {
-		widget_set_flag (&v->widgets[v->cursor], WF_CURSOR, false);
-		v->cursor = -1;
-	}
+			if ((w != -1) && (bd & v->drag_btn)) {
+				v->drag = true;
 
-	wm = wm && cursor_enabled;
+				v->drag_widget = w;
 
-	if (wm) {
-		view_set_focus (v, -1);
-
-		if (w != -1) {
-			if ((v->widgets[w].flags & CURSOR_FLAGS) == CURSOR_FLAGS) {
-				widget_set_flag (&v->widgets[w], WF_CURSOR, true);
-				v->cursor = w;
-
-				if (rumble_enabled && (c != w) && (ct != CUR_DRAG) &&
-						(v->widgets[w].flags & WF_RUMBLE) &&
-						(rumble_timeout == -RUMBLE_DELAY)) {
-					rumble_timeout = RUMBLE_TIME;
-					controls_rumble(1);
-				} 
+				v->drag_start_x = x;
+				v->drag_start_y = y;
 			}
 
-			if ((v->widgets[w].flags & FOCUS_FLAGS) == FOCUS_FLAGS)
-				view_set_focus (v, w);
+			if (v->drag && (bh & v->drag_btn)) {
+				v->drag_x = x - v->drag_start_x;
+				v->drag_y = y - v->drag_start_y;
+
+				ct = v->widgets[v->drag_widget].cur;
+			}
+		}
+
+		c = v->cursor;
+
+		if (v->cursor != -1) {
+			widget_set_flag (&v->widgets[v->cursor], WF_CURSOR, false);
+			v->cursor = -1;
+		}
+
+		wm = wm && cursor_enabled;
+
+		if (wm) {
+			view_set_focus (v, -1);
+
+			if (w != -1) {
+				if ((v->widgets[w].flags & CURSOR_FLAGS) == CURSOR_FLAGS) {
+					widget_set_flag (&v->widgets[w], WF_CURSOR, true);
+					v->cursor = w;
+
+					if (rumble_enabled && (c != w) && (ct != CUR_DRAG) &&
+							(v->widgets[w].flags & WF_RUMBLE) &&
+							(rumble_timeout == -RUMBLE_DELAY)) {
+						rumble_timeout = RUMBLE_TIME;
+						controls_rumble(1);
+					}
+				}
+
+				if ((v->widgets[w].flags & FOCUS_FLAGS) == FOCUS_FLAGS)
+					view_set_focus (v, w);
+			}
 		}
 	}
 
@@ -235,7 +248,24 @@ void view_plot (view *v, u32 alpha, u32 *down, u32 *held, u32 *up) {
 
 	gfx_frame_push (&entry_logo, 1);
 
-	view_push_view (v, alpha);
+		if(!viewing) {
+			char sct[20];
+
+			if (sce)
+				free(sce);
+
+			sprintf(sct, "Score: %08d", score);
+			int len = font_get_char_count (FONT_LABEL, sct, 200);
+			sce = malloc (len * sizeof (gfx_queue_entry));
+			// widget_label (&v_m_main->widgets[], 48, 32, 0, buffer,
+						  // view_width / 3 * 2 - 32, FA_LEFT, FA_ASCENDER, FONT_LABEL);
+			font_plot_string (sce, len, FONT_LABEL, sct, 440, view_height - 48, TEX_LAYER_DIALOGS, view_width / 3 * 2 - 32, FA_LEFT, FA_ASCENDER);
+			gfx_frame_push (sce, len);
+		}
+
+		if(viewing || fading) {
+			view_push_view (v, alpha);
+		}
 
 	if (throbber_enabled)
 		gfx_frame_push(&entry_throbber, 1);
@@ -289,7 +319,12 @@ void view_fade (view *v, s16 z, u32 c1, u32 c2, u32 c3, u32 c4, u8 steps,
 	view *vf;
 	u8 i;
 
-	vf = view_new (1, v, 0, 0, 0, 0);
+	if(viewing) {
+		vf = view_new (1, v, 0, 0, 0, 0);
+	} else {
+		vf = view_new (1, NULL, 0, 0, 0, 0);
+		fading = 1;
+	}
 
 	widget_gradient (&vf->widgets[0], -32, -32, z, view_width + 64,
 						view_height + 64, c1, c2, c3, c4);
@@ -299,6 +334,7 @@ void view_fade (view *v, s16 z, u32 c1, u32 c2, u32 c3, u32 c4, u8 steps,
 
 		view_plot (vf, 0, NULL, NULL, NULL);
 	}
+	fading = 0;
 }
 
 void view_set_focus (view *v, s8 new_focus) {
