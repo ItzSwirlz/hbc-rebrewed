@@ -17,6 +17,9 @@
 #include "unzip.h"
 
 #include "theme.h"
+#ifdef USE_MUSIC
+#include "music.h"
+#endif
 
 // view.c
 #include "background_png.h"
@@ -57,11 +60,6 @@
 #include "content_arrow_down_png.h"
 #include "content_arrow_up_png.h"
 #include "progress_png.h"
-#ifdef USE_MUSIC
-// music.c
-#include "credit_music_mp3.h"
-#include "menu_music_mp3.h"
-#endif
 
 #define _ENTRY(n, w, h, fn) {n##_png, &n##_png_size, w, h, NULL, NULL, 0, fn}
 
@@ -76,7 +74,7 @@
 gfx_entity *theme_gfx[THEME_LAST];
 
 #ifdef USE_MUSIC
-theme_mp3 theme_music[2];
+theme_ogg theme_music[2];
 #endif
 
 theme_font theme_fonts[FONT_MAX];
@@ -173,15 +171,17 @@ static void theme_load_music(unzFile uf) {
         if (theme.music[i].file) {
             file = theme.music[i].file;
         }
+        else if (theme.default_music[i].file)
+			file = theme.default_music[i].file;
 
         if (file) {
             if (!theme_music[i].data) {
                 unz_file_info fi;
-                gprintf("Loading mp3 file %s\n", file);
+                gprintf("Loading OGG file %s\n", file);
 
                 res = unzLocateFile(uf, file, 2);
                 if (res != UNZ_OK) {
-                    gprintf("Could not locate mp3 file %s\n", file);
+                    gprintf("Could not locate OGG file %s\n", file);
                 }
 
                 res = unzGetCurrentFileInfo(uf, &fi, NULL, 0, NULL, 0, NULL, 0);
@@ -190,7 +190,7 @@ static void theme_load_music(unzFile uf) {
                 }
 
                 if (fi.uncompressed_size == 0) {
-                    gprintf("MP3 file is empty\n");
+                    gprintf("OGG file is empty\n");
                 }
 
                 void *buf;
@@ -411,12 +411,12 @@ void theme_init(u8 *data, u32 data_len) {
     }
 
 #ifdef USE_MUSIC
-    // TODO: support custom mp3s
-    theme_music[0].data = menu_music_mp3;
-    theme_music[0].data_len = menu_music_mp3_size;
+    // TODO: support custom oggs
+    theme_music[0].data = menu_music_ogg;
+    theme_music[0].data_len = menu_music_ogg_size;
 #ifdef USE_CREDITS
-    theme_music[1].data = credit_music_mp3;
-    theme_music[1].data_len = credit_music_mp3_size;
+    theme_music[1].data = credit_music_ogg;
+    theme_music[1].data_len = credit_music_ogg_size;
 #endif
 #endif
 
