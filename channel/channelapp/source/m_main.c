@@ -3,6 +3,7 @@
 
 #include <network.h>
 #include <ogcsys.h>
+#include <ogc/isfs.h>
 
 #include "../config.h"
 #include "i18n.h"
@@ -12,6 +13,9 @@
 #include "title.h"
 #include "view.h"
 
+#define TITLE_UPPER(x) (u32)(x >> 32)
+#define TITLE_LOWER(x) (u32)(x & 0xFFFFFFFF)
+
 #include "m_main.h"
 
 static view *v_m_main;
@@ -20,44 +24,60 @@ static const char *text_no_ip;
 static const char *text_has_ip;
 static const char *text_number_apps;
 
-static bool bootmii_ios = false;
+static bool priiloader = false;
 static bool vwii = false;
 
-static bool bootmii_is_installed(u64 title_id) {
-    u32 tmd_view_size;
-    u8 *tmdbuf;
-    bool ret;
+static bool priiloader_is_installed(u64 title_id) {
 
-    if (ES_GetTMDViewSize(title_id, &tmd_view_size) < 0)
-        return false;
+	u32 tmd_size;
+	static u8 tmd_buf[MAX_SIGNED_TMD_SIZE] ATTRIBUTE_ALIGN(32);
+	static signed_blob *mTMD;
+	static tmd *rTMD;
+	char TMD_Path[ISFS_MAXPATH];
+	char TMD_Path2[ISFS_MAXPATH];
 
-    if (tmd_view_size < 90)
-        return false;
+	//IOS Shit Done
+	//read TMD so we can get the main booting dol
+	s32 fd = 0;
+	u32 id = 0;
+	bool ret = false;
+	memset(TMD_Path,0,64);
+	memset(TMD_Path2,0,64);
+	sprintf(TMD_Path, "/title/%08x/%08x/content/title.tmd",TITLE_UPPER(title_id),TITLE_LOWER(title_id));
+	sprintf(TMD_Path2, "/title/%08x/%08x/content/title_or.tmd",TITLE_UPPER(title_id),TITLE_LOWER(title_id));
+	fd = ES_GetStoredTMDSize(title_id,&tmd_size);
+	if (fd < 0)
+	{
+		gprintf("Unable to get stored tmd size");
+	}
+	mTMD = (signed_blob *)tmd_buf;
+	fd = ES_GetStoredTMD(title_id,mTMD,tmd_size);
+	if (fd < 0)
+	{
+		gprintf("Unable to get stored tmd");
+	}
+	rTMD = (tmd*)SIGNATURE_PAYLOAD(mTMD);
+	for(u8 i=0; i < rTMD->num_contents; ++i)
+	{
+		if (rTMD->contents[i].index == rTMD->boot_index)
+		{
+			id = rTMD->contents[i].cid;
+			break;
+		}
+	}
+	if (id == 0)
+	{
+		gprintf("Unable to retrieve title booting app");
+	}
 
-    if (tmd_view_size > 1024)
-        return false;
-
-    tmdbuf = pmemalign(32, 1024);
-
-    if (ES_GetTMDView(title_id, tmdbuf, tmd_view_size) < 0) {
-        free(tmdbuf);
-        return false;
-    }
-
-    if (tmdbuf[50] == 'B' && tmdbuf[51] == 'M')
-        ret = true;
-    else
-        ret = false;
-
-    free(tmdbuf);
-
-    return ret;
+	ret = id;
+	return ret;
 }
 
 static bool inited_widgets = false;
 
 view *m_main_init(void) {
-    bootmii_ios = bootmii_is_installed(TITLEID_BOOTMII);
+    priiloader = priiloader_is_installed(TITLEID_SYSMENU);
     vwii = is_vwii();
 
     v_m_main = view_new(9, NULL, 0, 0, 0, 0);
@@ -89,10 +109,10 @@ void m_main_theme_reinit(void) {
         for (i = 0; i < v_m_main->widget_count; ++i)
             widget_free(&v_m_main->widgets[i]);
 
-    if (bootmii_ios || vwii)
-        yadd = 16;
+    if (vwii)
+        yadd = 8;
     else
-        yadd = 32;
+        yadd = 16;
 
     x = (view_width - theme_gfx[THEME_BUTTON]->w) / 2;
     y = 80;
@@ -102,11 +122,9 @@ void m_main_theme_reinit(void) {
     widget_button(&v_m_main->widgets[1], x, y, 0, BTN_NORMAL, _("About"));
     y += theme_gfx[THEME_BUTTON]->h + yadd;
 
-    if (bootmii_ios) {
-        widget_button(&v_m_main->widgets[2], x, y, 0, BTN_NORMAL,
-                      _("Launch BootMii"));
-        y += theme_gfx[THEME_BUTTON]->h + yadd;
-    }
+	widget_button(&v_m_main->widgets[2], x, y, 0, BTN_NORMAL,
+					_("Launch Priiloader"));
+	y += theme_gfx[THEME_BUTTON]->h + yadd;
 
     if (vwii) {
         widget_button(&v_m_main->widgets[3], x, y, 0, BTN_NORMAL,

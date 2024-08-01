@@ -86,6 +86,9 @@ s32 __IOS_LoadStartupIOS(void) {
 #define MEM2_PROT 0x0D8B420A
 #define ES_MODULE_START (u16 *)0x939F0000
 
+#define MAGIC_WORD_ADDRESS 0x8132FFFB
+#define MAGIC_WORD_ADDRESS2 0x817FEFF0 //0x8132FFFB
+
 static const u16 ticket_check[] = {
     0x685B,         // ldr r3,[r3,#4] ; get TMD pointer
     0x22EC, 0x0052, // movls r2, 0x1D8
@@ -294,7 +297,7 @@ void main_real(void) {
     entry_point ep;
     bool reloced;
     bool ahb_access;
-    bool launch_bootmii;
+    bool launch_priiloader;
     bool restart;
 
     u64 frame;
@@ -337,7 +340,7 @@ void main_real(void) {
 
     reloced = false;
     ahb_access = false;
-    launch_bootmii = false;
+    launch_priiloader = false;
     restart = false;
 
     frame = 0;
@@ -469,7 +472,7 @@ void main_real(void) {
 
                 // "Launch BootMii"
                 case 2:
-                    launch_bootmii = true;
+                    launch_priiloader = true;
                     should_exit = true;
                     break;
 
@@ -815,9 +818,17 @@ void main_real(void) {
 
     settings_save();
 
-    if (launch_bootmii) {
-        gprintf("launching BootMii\n");
-        __IOS_LaunchNewIOS(BOOTMII_IOS);
+    if (launch_priiloader) {
+		gprintf("magic word is %x\n", *(vu32*)MAGIC_WORD_ADDRESS);
+		*(vu32*)MAGIC_WORD_ADDRESS = 0x4461636f; // "Daco" , causes priiloader to skip autoboot and load the priiloader menu
+		*(vu32*)MAGIC_WORD_ADDRESS2 = *(vu32*)MAGIC_WORD_ADDRESS;
+		DCFlushRange((void*)MAGIC_WORD_ADDRESS, 4);
+		DCFlushRange((void*)MAGIC_WORD_ADDRESS2, 4);
+		gprintf("magic word changed to %x\n", *(vu32*)MAGIC_WORD_ADDRESS);
+
+		("returning to sysmenu\n");
+		sleep(2);
+		SYS_ResetSystem(SYS_RETURNTOMENU, 0, 0);
     }
 
     if (reloced) {
