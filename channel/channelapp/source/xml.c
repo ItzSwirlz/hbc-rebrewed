@@ -173,19 +173,19 @@ static void _get_font(mxml_node_t *node) {
 
 static void _get_theme(mxml_node_t *node) {
 #ifdef USE_MUSIC
-    theme_mp3_t mp3;
-    mp3.file = _xmldup(_get_elem_cdata(node, "file"));
-    mp3.size = _get_elem_int(node, "size", 0);
+    theme_ogg_t ogg;
+    ogg.file = _xmldup(_get_elem_cdata(node, "file"));
+    ogg.size = _get_elem_int(node, "size", 0);
     // this should be all we need for now if we're just doing one file, if we
     // add credits music we will need targets like fonts
 
     // FIXME: Support themes/custom music. For now hardcode music to menu music
-    if (mp3.file != NULL) {
+    if (ogg.file != NULL) {
         if (theme.music[0].file) {
             free(theme.music[0].file);
         }
-        theme.music[0].file = mp3.file;
-        theme.music[0].size = mp3.size;
+        theme.music[0].file = ogg.file;
+        theme.music[0].size = ogg.size;
     }
 #endif
 }

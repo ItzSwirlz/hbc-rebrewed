@@ -1,19 +1,25 @@
+#include "../config.h"
 #ifdef USE_MUSIC
+#include <ogc/machine/processor.h>
+
 #include "music.h"
 #include <asndlib.h>
-#include <mad.h>
-#include <mp3player.h>
+#include "oggplayer.h"
 #include <stdio.h>
+
 
 #include "theme.h"
 #include "xml.h"
+
+const theme_font_t default_music[MUSIC_MAX] = {
+	{menu_music_ogg, &menu_music_ogg_size},
+	{credit_music_ogg, &credit_music_ogg_size}};
 
 int current_track = MUSIC_TRACK_MENU; // default
 
 void music_init() {
     ASND_Init();
-    MP3Player_Init();
-    MP3Player_Volume(127);
+    SetVolumeOgg(127);
 }
 
 void play_music() {
@@ -25,20 +31,15 @@ void play_music() {
 }
 
 void play_music_track(int track) {
-    if (track != current_track) {
-        MP3Player_Stop();
-        current_track = track;
-    }
-
-    if (!MP3Player_IsPlaying()) {
-        MP3Player_PlayBuffer(theme_music[current_track].data,
-                             theme_music[current_track].data_len, NULL);
-        ASND_Pause(0);
+    if (track != current_track)
+		current_track = track;
+    if (StatusOgg() != 1) {
+        PlayOgg(theme_music[current_track].data, theme_music[current_track].data_len, 0, OGG_INFINITE_TIME);
     }
 }
 
 void music_deinit() {
-    MP3Player_Stop();
+    StopOgg();
     ASND_End();
 }
 

@@ -7,6 +7,9 @@
 
 #include "font.h"
 #include "theme.h"
+#ifdef USE_MUSIC
+#include "music.h"
+#endif
 
 #define NO_COLOR 0x0DEADF00
 
@@ -51,7 +54,7 @@ typedef struct {
 typedef struct {
     char *file;
     int size;
-} theme_mp3_t;
+} theme_ogg_t;
 #endif
 
 typedef enum {
@@ -66,7 +69,8 @@ typedef struct {
     theme_font_t default_font;
     theme_font_t fonts[FONT_MAX];
 #ifdef USE_MUSIC
-    theme_mp3_t music[2];
+	theme_ogg_t default_music[MUSIC_MAX];
+    theme_ogg_t music[2];
 #endif
     theme_lang_t langs;
 } theme_t;
