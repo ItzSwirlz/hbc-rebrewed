@@ -277,7 +277,7 @@ void main_real(void) {
 
     u8 fhw;
 
-    u32 bd, bh;
+    u32 bd, bh, bu;
     s8 clicked;
     s16 mm;
 
@@ -407,7 +407,7 @@ void main_real(void) {
         if ((frame % 30) == 0)
             app_entry_scan();
 
-        view_plot(v_current, DIALOG_MASK_COLOR, &bd, &bh, NULL);
+        view_plot(v_current, DIALOG_MASK_COLOR, &bd, &bh, &bu);
 
         frame++;
         if (v_last != v_current) {
@@ -534,7 +534,7 @@ void main_real(void) {
             }
 #endif
             if (viewing) {
-                if (bd & PADS_1) {
+                if ((bu & PADS_1) && !(bh & WPAD_BUTTON_2 << 16))  {
                     dialog_options_result options;
                     options = show_options_dialog(v_current);
 
@@ -547,7 +547,7 @@ void main_real(void) {
                     continue;
                 }
 
-                if (bd & PADS_2) {
+                if (bu & PADS_2) {
                     browser_switch_mode();
                     continue;
                 }

@@ -259,8 +259,8 @@ void view_plot(view *v, u32 alpha, u32 *down, u32 *held, u32 *up) {
         sce = malloc(len * sizeof(gfx_queue_entry));
         // widget_label (&v_m_main->widgets[], 48, 32, 0, buffer,
         // view_width / 3 * 2 - 32, FA_LEFT, FA_ASCENDER, FONT_LABEL);
-        font_plot_string(sce, len, FONT_LABEL, sct, 440, view_height - 48,
-                         TEX_LAYER_DIALOGS, view_width / 3 * 2 - 32, FA_LEFT,
+        font_plot_string(sce, len, FONT_LABEL, sct, view_width - view_width/2, view_height - 54,
+                         TEX_LAYER_DIALOGS, view_width / 2 - 40, FA_RIGHT,
                          FA_ASCENDER);
         gfx_frame_push(sce, len);
     }

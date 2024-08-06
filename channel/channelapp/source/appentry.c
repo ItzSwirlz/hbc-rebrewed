@@ -7,6 +7,7 @@
 #include <unistd.h>
 
 #include <fat.h>
+#include <ogc/mutex.h>
 #include <ogc/cond.h>
 #include <ogc/usbstorage.h>
 #include <ogcsys.h>
