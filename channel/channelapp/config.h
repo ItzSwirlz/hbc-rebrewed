@@ -46,8 +46,7 @@ void memstats(int reset);
 #define STUB_ADDR_MAGIC ((u64 *) 0x80002f00)
 #define STUB_ADDR_TITLE ((u64 *) 0x80002f08)
 
-#define BOOTMII_IOS 254
-#define TITLEID_BOOTMII (0x0000000100000000LL | BOOTMII_IOS)
+#define TITLEID_SYSMENU 0x0000000100000002LL
 
 #define PREFERRED IOS_GetPreferredVersion()
 #define UNCHANGED IOS_GetVersion()

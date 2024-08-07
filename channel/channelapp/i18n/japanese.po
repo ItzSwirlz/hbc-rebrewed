@@ -210,8 +210,8 @@ msgid "About"
 msgstr "このアプリケーションについて"
 
 #: source/m_main.c:102
-msgid "Launch BootMii"
-msgstr "BootMiiを起動"
+msgid "Launch Priiloader"
+msgstr "Priiloaderを起動"
 
 #: source/m_main.c:106
 msgid "Exit to System Menu"

@@ -210,8 +210,8 @@ msgid "About"
 msgstr "À propos de"
 
 #: source/m_main.c:102
-msgid "Launch BootMii"
-msgstr "Lancer BootMii"
+msgid "Launch Priiloader"
+msgstr "Lancer Priiloader"
 
 #: source/m_main.c:106
 msgid "Exit to System Menu"
