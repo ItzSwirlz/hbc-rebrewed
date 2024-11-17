@@ -10,6 +10,7 @@
 #include "font.h"
 #include "panic.h"
 #include "theme.h"
+#include "title.h"
 #include "view.h"
 #include "widgets.h"
 #include "xml.h"
@@ -516,9 +517,10 @@ dialog_options_result show_options_dialog(const view *sub_view) {
 
     widget_button(&v->widgets[4], 52, 64, 1, BTN_SMALL, NULL);
     widget_button(&v->widgets[5], 268, 64, 1, BTN_SMALL, NULL);
-    widget_button(&v->widgets[6], 52, 112, 1, BTN_SMALL, NULL);
-    widget_button(&v->widgets[7], 268, 112, 1, BTN_SMALL, NULL);
-
+	if !(is_vwii()) {
+		widget_button(&v->widgets[6], 52, 112, 1, BTN_SMALL, NULL);
+		widget_button(&v->widgets[7], 268, 112, 1, BTN_SMALL, NULL);
+	}
     widget_button(&v->widgets[WIDGET_SORT_NAME], 52, 190, 1, BTN_SMALL, NULL);
     widget_button(&v->widgets[WIDGET_SORT_DATE], 268, 190, 1, BTN_SMALL, NULL);
     widget_button(&v->widgets[WIDGET_SORT_AUTHOR], 52, 242, 1, BTN_SMALL, NULL);
@@ -545,7 +547,7 @@ dialog_options_result show_options_dialog(const view *sub_view) {
         if (i == device)
             widget_button_set_caption(&v->widgets[DLG_DEV_FIRST + i],
                                       FONT_BUTTON, caption_device_names[i]);
-        else if (is_vwii() && i < 2) {
+        else if ((is_vwii() && (i < 2)) || !is_vwii()) {
             widget_button_set_caption(&v->widgets[DLG_DEV_FIRST + i],
                                       FONT_BUTTON_DESEL,
                                       caption_device_names[i]);

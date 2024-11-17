@@ -28,10 +28,10 @@
    Freeing of assigned storage is the callers responsibility
  */
 
-#include "ggets.h"
-#include "panic.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "ggets.h"
+#include "panic.h"
 
 #define INITSIZE 112 /* power of 2 minus 16, helps malloc */
 #define DELTASIZE (INITSIZE + 16)

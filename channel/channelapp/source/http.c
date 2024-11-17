@@ -4,6 +4,7 @@
 #include <unistd.h>
 
 #include <network.h>
+#include <ogc/mutex.h>
 #include <ogc/cond.h>
 #include <ogc/lwp_watchdog.h>
 #include <ogc/machine/processor.h>
