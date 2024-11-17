@@ -517,7 +517,7 @@ dialog_options_result show_options_dialog(const view *sub_view) {
 
     widget_button(&v->widgets[4], 52, 64, 1, BTN_SMALL, NULL);
     widget_button(&v->widgets[5], 268, 64, 1, BTN_SMALL, NULL);
-	if !(is_vwii()) {
+	if (!is_vwii()) {
 		widget_button(&v->widgets[6], 52, 112, 1, BTN_SMALL, NULL);
 		widget_button(&v->widgets[7], 268, 112, 1, BTN_SMALL, NULL);
 	}
