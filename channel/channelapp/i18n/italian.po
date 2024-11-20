@@ -212,8 +212,8 @@ msgid "About"
 msgstr "Informazioni"
 
 #: source/m_main.c:102
-msgid "Launch BootMii"
-msgstr "Lanciare BootMii"
+msgid "Launch Priiloader"
+msgstr "Lanciare Priiloader"
 
 #: source/m_main.c:106
 msgid "Exit to System Menu"

@@ -208,7 +208,7 @@ msgid "About"
 msgstr ""
 
 #: source/m_main.c:102
-msgid "Launch BootMii"
+msgid "Launch Priiloader"
 msgstr ""
 
 #: source/m_main.c:106
