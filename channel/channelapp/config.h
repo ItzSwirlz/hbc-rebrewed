@@ -4,11 +4,11 @@
 #define CHANNEL_VERSION_DATE 202407140000llu
 #define CHANNEL_VERSION_STR "1.1.3"
 
-//#define DEBUG_APP
+#define DEBUG_APP
 //#define DEBUG_STUB
 
-//#define USE_CREDITS
-//#define USE_MUSIC
+#define USE_CREDITS
+#define USE_MUSIC
 
 #define ENABLE_WIDESCREEN
 #define ENABLE_SCREENSHOTS
